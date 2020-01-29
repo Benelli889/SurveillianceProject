@@ -14,7 +14,7 @@ GPIO.output(pinList[0], GPIO.HIGH)
 
 
 class SurveillanceFilesClass:
-    #PathSurveillianceStation = "D:\\Daten\\03_Hobby\\Computer\\Raspberry\\Python"
+    #PathSurveillianceStation = "D:\\Daten\\Computer\\Raspberry\\Python"
     PathSurveillianceStation = '/home/pi/Projects/Surveillance/@Snapshot/@PushServ/'
 
     NumberFilesStrored = 0
