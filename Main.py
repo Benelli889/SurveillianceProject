@@ -2,20 +2,13 @@
 import os, time, sys
 from datetime import datetime
 from datetime import timedelta
-import RPi.GPIO as GPIO
 from TimerClass import TimerClass
 from LoggerClass import LoggerClass
 
-GPIO.setmode(GPIO.BCM)
-# Pin list for Relai-Board
-pinList = [19, 26, 20,  21]
-GPIO.setup(pinList[0], GPIO.OUT) 
-GPIO.output(pinList[0], GPIO.HIGH)
-
 
 class SurveillanceFilesClass:
-    #PathSurveillianceStation = "D:\\Daten\\Computer\\Raspberry\\Python"
-    PathSurveillianceStation = '/home/pi/Projects/Surveillance/@Snapshot/@PushServ/'
+    #PathSurveillianceStation = '/home/pi/Projects/Surveillance/@Snapshot/@PushServ/'
+    PathSurveillianceStation = '/volume1/surveillance/@Snapshot/@PushServ/'
 
     NumberFilesStrored = 0
     StoreLastElement = 0 
@@ -28,7 +21,7 @@ class SurveillanceFilesClass:
         
         for filename in os.listdir(self.PathSurveillianceStation):
             self.fileDateArray.append(os.path.getmtime(self.PathSurveillianceStation + filename))
-
+        
         # Sort list
         self.fileDateArray.sort()
 
@@ -40,6 +33,7 @@ class SurveillanceFilesClass:
         self.NumberFilesStrored = len(self.fileDateArray)
 
     def NewFileAvailable(self): 
+        #if len(fileDateArray) > NumberFilesStrored:
         if (self.StoreLastElement != 0) and (self.fileDateArray[-1] > self.StoreLastElement):
             return True
 
@@ -51,17 +45,16 @@ class SurveillanceFilesClass:
 SurveillanceFiles = SurveillanceFilesClass()
 Timer = TimerClass ()
 #Timer Relais
-Timer.SetTimerDuration(timedelta(weeks=0, days=0, seconds=45, microseconds=0, milliseconds=0, minutes=0, hours=0))
+Timer.SetTimerDuration(timedelta(weeks=0, days=0, seconds=20, microseconds=0, milliseconds=0, minutes=0, hours=0))
 #Logger Text
 Log = LoggerClass()
-Log.Configure('/home/pi/Projects/SurveillianceProject', 'Surveillance')
+Log.Configure('/volume1/homes/ArndtDev', 'Surveillance')
 
 
 while True:
     try:
         SurveillanceFiles.ReadSurveillanceFiles()
 
-        #if len(fileDateArray) > NumberFilesStrored:
         if SurveillanceFiles.NewFileAvailable():
             Log.MsgFrequency("NewFileAvailable")
 
@@ -69,18 +62,21 @@ while True:
                 Timer.Start()
                 print (" Timer started")
                 Log.Msg("Timer started: " + "{}".format(Timer.State()))
-                GPIO.output( pinList[0], GPIO.LOW)
+                time.sleep(3)
+                os.system("curl -s http://192.168.178.49/cm?cmnd=power1%201")
+                os.system("curl -s http://192.168.178.55/cm?cmnd=power1%201")
     
     except:
         print ("Interrupt error")
-        GPIO.cleanup()
         sys.exit()
 
     if Timer.State() == Timer.STARTED:
         if Timer.TimerRunUp():
             print (" Timer run up")
             Log.Msg("Timer started: " + "{}".format(Timer.State()))
-            GPIO.output( pinList[0], GPIO.HIGH)
+            #GPIO.output( pinList[1], GPIO.LOW)
+            os.system("curl -s http://192.168.178.49/cm?cmnd=power1%200")
+            os.system("curl -s http://192.168.178.55/cm?cmnd=power1%200")
 
     print '------------------'
     print SurveillanceFiles.NumberFilesStrored
@@ -92,9 +88,5 @@ while True:
     SurveillanceFiles.StoreLastCycleK1()
 
     # Wait
-    time.sleep(10)
-
-     
-#Reset GPIO settings
-GPIO.cleanup()
+    time.sleep(2)
     
