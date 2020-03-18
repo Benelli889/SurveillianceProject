@@ -9,12 +9,14 @@ from LoggerClass import LoggerClass
 GPIO.setmode(GPIO.BCM)
 # Pin list for Relai-Board
 pinList = [19, 26, 20,  21]
-GPIO.setup(pinList[0], GPIO.OUT) 
-GPIO.output(pinList[0], GPIO.HIGH)
+GPIO.setup(pinList[1], GPIO.OUT) 
+GPIO.output(pinList[1], GPIO.LOW)
+GPIO.setup(pinList[2], GPIO.OUT) 
+GPIO.output(pinList[2], GPIO.LOW)
 
 
 class SurveillanceFilesClass:
-    #PathSurveillianceStation = "D:\\Daten\\Computer\\Raspberry\\Python"
+    #PathSurveillianceStation = "D:\\Daten\\03_Hobby\\Computer\\Raspberry\\Python"
     PathSurveillianceStation = '/home/pi/Projects/Surveillance/@Snapshot/@PushServ/'
 
     NumberFilesStrored = 0
@@ -40,6 +42,7 @@ class SurveillanceFilesClass:
         self.NumberFilesStrored = len(self.fileDateArray)
 
     def NewFileAvailable(self): 
+        #if len(fileDateArray) > NumberFilesStrored:
         if (self.StoreLastElement != 0) and (self.fileDateArray[-1] > self.StoreLastElement):
             return True
 
@@ -51,7 +54,7 @@ class SurveillanceFilesClass:
 SurveillanceFiles = SurveillanceFilesClass()
 Timer = TimerClass ()
 #Timer Relais
-Timer.SetTimerDuration(timedelta(weeks=0, days=0, seconds=45, microseconds=0, milliseconds=0, minutes=0, hours=0))
+Timer.SetTimerDuration(timedelta(weeks=0, days=0, seconds=20, microseconds=0, milliseconds=0, minutes=0, hours=0))
 #Logger Text
 Log = LoggerClass()
 Log.Configure('/home/pi/Projects/SurveillianceProject', 'Surveillance')
@@ -61,7 +64,6 @@ while True:
     try:
         SurveillanceFiles.ReadSurveillanceFiles()
 
-        #if len(fileDateArray) > NumberFilesStrored:
         if SurveillanceFiles.NewFileAvailable():
             Log.MsgFrequency("NewFileAvailable")
 
@@ -69,7 +71,10 @@ while True:
                 Timer.Start()
                 print (" Timer started")
                 Log.Msg("Timer started: " + "{}".format(Timer.State()))
-                GPIO.output( pinList[0], GPIO.LOW)
+                GPIO.output( pinList[1], GPIO.HIGH)
+                GPIO.output( pinList[2], GPIO.HIGH)
+                time.sleep(3)
+                GPIO.output( pinList[2], GPIO.LOW)
     
     except:
         print ("Interrupt error")
@@ -80,7 +85,7 @@ while True:
         if Timer.TimerRunUp():
             print (" Timer run up")
             Log.Msg("Timer started: " + "{}".format(Timer.State()))
-            GPIO.output( pinList[0], GPIO.HIGH)
+            GPIO.output( pinList[1], GPIO.LOW)
 
     print '------------------'
     print SurveillanceFiles.NumberFilesStrored
@@ -92,7 +97,7 @@ while True:
     SurveillanceFiles.StoreLastCycleK1()
 
     # Wait
-    time.sleep(10)
+    time.sleep(2)
 
      
 #Reset GPIO settings
