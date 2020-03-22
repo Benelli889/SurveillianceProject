@@ -68,7 +68,8 @@ while True:
                 print(" Timer started")
                 Log.Msg("Timer started: " + "{}".format(Timer.State()))
                 time.sleep(3)
-                os.system("curl -s http://192.168.178.49/cm?cmnd=power1%201")
+                os.system("curl -s http://" + IP_WIFI_SOCKET +
+                          "/cm?cmnd=power1%201")
                 os.system("curl -s http://192.168.178.55/cm?cmnd=power1%201")
 
     except:
